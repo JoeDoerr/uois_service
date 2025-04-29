@@ -40,8 +40,8 @@ def prepare_networks():
 
         # Mean Shift parameters (for 3D voting)
         'max_GMS_iters' : 10, 
-        'epsilon' : 0.05, # Connected Components parameter
-        'sigma' : 0.02, # Gaussian bandwidth parameter
+        'epsilon' : 0.05, # Connected Components parameter 0.05
+        'sigma' : 0.02, # Gaussian bandwidth parameter 0.02
         'num_seeds' : 200, # Used for MeanShift, but not BlurringMeanShift
         'subsample_factor' : 5,
         
@@ -93,10 +93,11 @@ def prepare_networks():
     # In[ ]:
 
 
-    checkpoint_dir = '/home/chrisxie/projects/uois/checkpoints/' # TODO: change this to directory of downloaded models
+    checkpoint_dir = './models/' # TODO: change this to directory of downloaded models
     dsn_filename = checkpoint_dir + 'DepthSeedingNetwork_3D_TOD_checkpoint.pth'
     rrn_filename = checkpoint_dir + 'RRN_OID_checkpoint.pth'
     uois3d_config['final_close_morphology'] = 'TableTop_v5' in rrn_filename
+    print("making network")
     uois_net_3d = segmentation.UOISNet3D(uois3d_config, 
                                         dsn_filename,
                                         dsn_config,
@@ -104,7 +105,7 @@ def prepare_networks():
                                         rrn_config
                                         )
     return uois_net_3d
-
+    
 def inference(uois_net_3d):
     # ## Run on example OSD/OCID images
     # 
@@ -132,6 +133,19 @@ def inference(uois_net_3d):
 
         # XYZ
         xyz_imgs[i] = d['xyz']
+        depth_raw = np.asarray(xyz_imgs[i])
+        print(depth_raw.dtype, depth_raw.min(), depth_raw.max())
+        Z = xyz_imgs[i][..., 2]
+        Z = np.nan_to_num(Z, nan=0.0, posinf=0.0, neginf=0.0)
+
+        plt.figure(figsize=(8, 6))
+        plt.hist(Z.flatten(), bins=100, color='blue', alpha=0.7)
+        plt.title("Depth Value Histogram")
+        plt.xlabel("Depth (meters)")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig("./depth_histo.png")
 
         # Label
         label_imgs[i] = d['label']

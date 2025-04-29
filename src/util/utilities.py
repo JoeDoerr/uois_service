@@ -45,6 +45,9 @@ def get_color_mask(object_index, nc=None):
     for i in np.unique(object_index):
         if i == 0 or i == -1:
             continue
+        print(color_mask[object_index == i, 0])
+        print(i)
+        print(colors[i][:3])
         color_mask[object_index == i, :] = np.array(colors[i][:3]) * 255
         
     return color_mask
